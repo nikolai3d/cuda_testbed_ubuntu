@@ -17,6 +17,10 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build/Release)
 endif()
 
+# Add the component NVML as a static library
+add_library(nvml STATIC source/components/nvml.cpp source/components/nvml.h)
 
+# Link the component to the main executable
 add_executable(cuda_info source/main.cpp)
 target_link_libraries(cuda_info ${CUDA_LIBRARIES})
+target_link_libraries(cuda_info nvml)
