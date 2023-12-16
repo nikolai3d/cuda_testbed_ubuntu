@@ -10,6 +10,10 @@
 // Declarations using the macro
 
 namespace {
+DECLARE_FN_PTR(nvmlInitWithFlags, nvmlReturn_t, (unsigned int));
+DECLARE_FN_PTR(nvmlInit_v2, nvmlReturn_t, (void));
+DECLARE_FN_PTR(nvmlShutdown, nvmlReturn_t, (void));
+
 DECLARE_FN_PTR(nvmlSystemGetCudaDriverVersion, nvmlReturn_t, (int *));
 DECLARE_FN_PTR(nvmlSystemGetCudaDriverVersion_v2, nvmlReturn_t, (int *));
 DECLARE_FN_PTR(nvmlSystemGetDriverVersion, nvmlReturn_t, (char *, unsigned int));
@@ -141,7 +145,13 @@ void queryPointers() {
     std::cout << "Failed to open libnvidia-ml.so.1" << std::endl;
   }
 
-  std::initializer_list<Symbol> symbols = {{(void **)&pfn_nvmlSystemGetCudaDriverVersion, "nvmlSystemGetCudaDriverVersion"},
+  std::initializer_list<Symbol> symbols = {
+    
+                                            {(void**)&pfn_nvmlInitWithFlags, "nvmlInitWithFlags"},
+                                            {(void**)&pfn_nvmlInit_v2, "nvmlInit_v2"},
+                                            {(void**)&pfn_nvmlShutdown, "nvmlShutdown"},
+    
+                                           {(void **)&pfn_nvmlSystemGetCudaDriverVersion, "nvmlSystemGetCudaDriverVersion"},
                                            {(void **)&pfn_nvmlSystemGetCudaDriverVersion_v2, "nvmlSystemGetCudaDriverVersion_v2"},
                                            {(void **)&pfn_nvmlSystemGetDriverVersion, "nvmlSystemGetDriverVersion"},
                                            {(void **)&pfn_nvmlSystemGetNVMLVersion, "nvmlSystemGetNVMLVersion"},
