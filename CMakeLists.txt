@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(testbed_cpp20)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/local/cuda-11.8")
