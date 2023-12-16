@@ -2,7 +2,7 @@
 # We'll use defaults from the Google style, but with 2 columns indentation.
 BasedOnStyle: Google
 IndentWidth: 2
-ColumnLimit: 160
+ColumnLimit: 280
 # ---
 AlignAfterOpenBracket: Align
 AlignConsecutiveDeclarations: true

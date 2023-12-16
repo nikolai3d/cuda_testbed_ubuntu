@@ -7,8 +7,11 @@
 
 #include <iostream>
 #include <cuda_runtime.h>
+#include "components/nvml.h"
 
 int main() {
+    ia_nvml::query_nvml_pointers();
+    
     int deviceCount = 0;
     cudaError_t error = cudaGetDeviceCount(&deviceCount);
 
