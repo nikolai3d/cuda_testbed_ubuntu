@@ -1,0 +1,21 @@
+# ---
+# We'll use defaults from the Google style, but with 2 columns indentation.
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 160
+# ---
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations: true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
+FixNamespaceComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+SpacesInAngles: false
+# ---
