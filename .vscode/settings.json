@@ -57,5 +57,29 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "__nullptr": "cpp"
+    },
+
+    "[javascript]": {
+        "editor.tabSize": 2
+    },
+    "[html]": {
+        "editor.tabSize": 2
+    },
+    "[css]": {
+        "editor.tabSize": 2
+    },
+    "[cpp]": {
+        "editor.tabSize": 2
+    },
+    "[c]": {
+        "editor.tabSize": 2
+    },
+    "[h]": {
+        "editor.tabSize": 2
+    },
+    "[hpp]" :{
+        "editor.tabSize": 2
     }
+
+
 }
