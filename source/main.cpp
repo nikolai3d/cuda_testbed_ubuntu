@@ -65,6 +65,8 @@ MyStream couti;
 
 int main() {
 
+  console::couti << "Initializing NVML...";
+
   ia_nvml::NVMLContext nvml_context;
 
 #define NVML_CALL(NVML_FUNCTION, ...) IA_NVML_CALL(nvml_context._nvml_function_table, NVML_FUNCTION, __VA_ARGS__)

@@ -17,7 +17,26 @@
 
 namespace ia_nvml {
 
-struct NVMLFunctionTable {
+/**
+ * @brief Class representing the NVML function table.
+ * 
+ * This class encapsulates the function pointers for various NVML functions, providing a convenient way to access and call NVML functions dynamically. 
+ * It also holds the DLL handle for the NVML library.
+ * Each function pointer is declared using the IA_DECLARE_FPTR macro.
+ * 
+ * On instantiation, everything is initialized to nullptr.
+ * The initialize_nvml_function_pointers function opens the DLL and initializes the function pointers using the provided NVML library handle.
+ * If the DLL handle has been initialized, the destructor would close/free it and unload the DLL.
+ * No thread safety is provided, so make sure to call the functions from a single thread or implement your own thread safety mechanisms.
+ */
+
+class NVMLFunctionTable {
+  // DLL/SO handle
+  void *_nvml_dll_handle = nullptr;
+
+ public:
+  // NVML Function Pointers:
+  // Reference: https://docs.nvidia.com/deploy/nvml-api/index.html
   IA_DECLARE_FPTR(nvmlInitWithFlags, nvmlReturn_t, (unsigned int));
   IA_DECLARE_FPTR(nvmlInit_v2, nvmlReturn_t, (void));
   IA_DECLARE_FPTR(nvmlShutdown, nvmlReturn_t, (void));
@@ -142,9 +161,27 @@ struct NVMLFunctionTable {
 
   IA_DECLARE_FPTR(nvmlErrorString, const char *, (nvmlReturn_t));
 
-  void initialize_nvml_function_pointers(void *i_dll_handle);
-};
+  /**
+   * @brief Initializes the function pointers for NVML (NVIDIA Management Library).
+   * 
+   * This function initializes the necessary function pointers for interacting with NVML.
+   * It should be called before any other NVML-related operations.
+   * 
+   * @return true if the DLL load is successful, false otherwise. Does not check if the actual function pointers are succesfully initialized.
+   */
+  bool initialize_nvml_function_pointers();
 
+  NVMLFunctionTable() = default;
+  // Non-copyable, non-movable
+  NVMLFunctionTable(const NVMLFunctionTable&) = delete;
+  NVMLFunctionTable& operator=(const NVMLFunctionTable&) = delete;
+  NVMLFunctionTable(NVMLFunctionTable&&) = delete;
+  NVMLFunctionTable& operator=(NVMLFunctionTable&&) = delete;
+  /**
+  * @brief The destructor frees up the NVML library handle, if it has been initialized.
+  */
+  ~NVMLFunctionTable();
+};
 
 namespace detail {
 /**
@@ -167,6 +204,7 @@ decltype(auto) invoke_helper(Function &&func, ArgTuple &&tuple, std::index_seque
   return std::invoke(std::forward<Function>(func), std::get<I>(std::forward<ArgTuple>(tuple))...);
 }
 
+using error_string_provider_t = std::function<const char *(nvmlReturn_t)>;
 /**
  * Calls an NVML function with arguments provided as a tuple. (Don't use this function directly, use the IA_NVML_CALL macro instead.). If the function call fails, an error message is printed to stderr.
  *
@@ -178,7 +216,6 @@ decltype(auto) invoke_helper(Function &&func, ArgTuple &&tuple, std::index_seque
  * @return void
  */
 
-using error_string_provider_t = std::function<const char *(nvmlReturn_t)>;
 template <typename Function, typename ArgTuple>
 decltype(auto) call_function_with_arguments_tuple(const char *file, const std::int64_t line, const char *function_call, error_string_provider_t error_string_provider, Function &&func, ArgTuple &&tuple) {
   constexpr auto tuple_size = std::tuple_size_v<std::remove_reference_t<ArgTuple>>;
@@ -191,9 +228,23 @@ decltype(auto) call_function_with_arguments_tuple(const char *file, const std::i
     ss << "ERROR: CUDA NVML call " << function_call << " at line " << line << " of file " << file << " failed with error \"" << error_string_provider(status) << "\" (error code " << status << ").\n";
     std::cerr << ss.str() << std::endl;
   }
+  return status;
 }
 }  // namespace detail
 
+/**
+* @brief Macro to call a NVML function from a function table
+* To call a NVML function, use the IA_NVML_CALL macro, passing the function table and the function name, followed by the arguments to be passed to the function.
+* E.g.: 
+* NVMLFunctionTable your_function_table;
+* your_function_table.initialize_nvml_function_pointers();
+* ...
+* nvmlDevice_t device;
+* std::uint32_t device_count = 0;
+* IA_NVML_CALL(your_function_table, nvmlInit_v2);
+* IA_NVML_CALL(your_function_table, nvmlDeviceGetCount_v2, &device_count);
+* IA_NVML_CALL(your_function_table, nvmlDeviceGetHandleByIndex_v2, 0, &device);
+*/
 #define IA_NVML_CALL(NVML_FUNCTION_TABLE, NVML_FUNCTION, ...) ia_nvml::detail::call_function_with_arguments_tuple(__FILE__, __LINE__, #NVML_FUNCTION, NVML_FUNCTION_TABLE.pfn_nvmlErrorString, NVML_FUNCTION_TABLE.pfn_##NVML_FUNCTION, std::make_tuple(__VA_ARGS__))
 
 }  // namespace ia_nvml

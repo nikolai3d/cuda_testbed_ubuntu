@@ -8,7 +8,6 @@ namespace ia_nvml {
 class NVMLContext {
 public:
   NVMLFunctionTable         _nvml_function_table;
-  void*                     _nvml_library_handle = nullptr;
   std::thread::id           _thread_id;  // To avoid multiple threads issue, make sure NVML context can only be called from one thread
 
  public:
