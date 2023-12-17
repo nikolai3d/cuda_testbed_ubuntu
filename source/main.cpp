@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "components/ia_nvml.hpp"
-
+#include "components/ia_nvml_context.h"
 class MyStream {
  public:
   class Helper {
@@ -63,13 +63,16 @@ MyStream couti;
   }
 
 int main() {
-  IA_NVML_CALL(nvmlInit_v2);
+
+  ia_nvml::NVMLContext nvml_context;
+
+  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlInit_v2);
 
   console::couti << "NVML Initialized";
 
   std::uint32_t device_count = 0;
 
-  IA_NVML_CALL(nvmlDeviceGetCount_v2, &device_count);
+  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetCount_v2, &device_count);
 
   console::couti << "NVML Device count: " << device_count;
 

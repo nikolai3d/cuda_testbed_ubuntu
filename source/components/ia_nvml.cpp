@@ -1,7 +1,5 @@
 #include "ia_nvml.hpp"
 #include <dlfcn.h>
-
-
 #include <initializer_list>
 #include <iostream>
 
@@ -18,10 +16,6 @@ struct Symbol {
 
 namespace ia_nvml {
 
-NVMLFunctionTable &NVMLFunctionTable::instance() {
-  static NVMLFunctionTable s_instance;
-  return s_instance;
-}
 
 void NVMLFunctionTable::initialize_nvml_function_pointers(void *i_dll_handle) {
 

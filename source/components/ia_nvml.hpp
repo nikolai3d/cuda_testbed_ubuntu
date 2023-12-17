@@ -143,8 +143,6 @@ struct NVMLFunctionTable {
   IA_DECLARE_FPTR(nvmlErrorString, const char *, (nvmlReturn_t));
 
   void initialize_nvml_function_pointers(void *i_dll_handle);
-
-  static NVMLFunctionTable &instance();
 };
 
 
@@ -179,8 +177,10 @@ decltype(auto) invoke_helper(Function &&func, ArgTuple &&tuple, std::index_seque
  * @param t Arguments to be passed to the NVML function, in the form of a tuple 
  * @return void
  */
+
+using error_string_provider_t = std::function<const char *(nvmlReturn_t)>;
 template <typename Function, typename ArgTuple>
-decltype(auto) call_function_with_arguments_tuple(const char *file, const std::int64_t line, const char *function_call, Function &&func, ArgTuple &&tuple) {
+decltype(auto) call_function_with_arguments_tuple(const char *file, const std::int64_t line, const char *function_call, error_string_provider_t error_string_provider, Function &&func, ArgTuple &&tuple) {
   constexpr auto tuple_size = std::tuple_size_v<std::remove_reference_t<ArgTuple>>;
   const auto     status = invoke_helper(std::forward<Function>(func), std::forward<ArgTuple>(tuple), std::make_index_sequence<tuple_size>{});
  // Static assert to check return type
@@ -188,12 +188,12 @@ decltype(auto) call_function_with_arguments_tuple(const char *file, const std::i
 
   if (status != NVML_SUCCESS) {
     std::stringstream ss;
-    ss << "ERROR: CUDA NVML call " << function_call << " at line " << line << " of file " << file << " failed with error \"" << NVMLFunctionTable::instance().pfn_nvmlErrorString(status) << "\" (error code " << status << ").\n";
+    ss << "ERROR: CUDA NVML call " << function_call << " at line " << line << " of file " << file << " failed with error \"" << error_string_provider(status) << "\" (error code " << status << ").\n";
     std::cerr << ss.str() << std::endl;
   }
 }
 }  // namespace detail
 
-#define IA_NVML_CALL(NVML_FUNCTION, ...) ia_nvml::detail::call_function_with_arguments_tuple(__FILE__, __LINE__, #NVML_FUNCTION, ia_nvml::NVMLFunctionTable::instance().pfn_##NVML_FUNCTION, std::make_tuple(__VA_ARGS__))
+#define IA_NVML_CALL(NVML_FUNCTION_TABLE, NVML_FUNCTION, ...) ia_nvml::detail::call_function_with_arguments_tuple(__FILE__, __LINE__, #NVML_FUNCTION, NVML_FUNCTION_TABLE.pfn_nvmlErrorString, NVML_FUNCTION_TABLE.pfn_##NVML_FUNCTION, std::make_tuple(__VA_ARGS__))
 
 }  // namespace ia_nvml
