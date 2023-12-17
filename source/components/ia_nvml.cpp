@@ -23,12 +23,7 @@ NVMLFunctionTable &NVMLFunctionTable::instance() {
   return s_instance;
 }
 
-void NVMLFunctionTable::initialize_nvml_function_pointers() {
-  void *libhandle = dlopen("libnvidia-ml.so.1", RTLD_NOW);
-  if (libhandle == nullptr) {
-    std::cout << "Failed to open libnvidia-ml.so.1" << std::endl;
-    return;
-  }
+void NVMLFunctionTable::initialize_nvml_function_pointers(void *i_dll_handle) {
 
   std::initializer_list<Symbol> symbols = {
 
@@ -160,7 +155,7 @@ void NVMLFunctionTable::initialize_nvml_function_pointers() {
   std::size_t num_symbols = symbols.size();
   std::size_t num_symbols_loaded = 0;
   for (auto &symbol : symbols) {
-    *(symbol._ppfn) = dlsym(libhandle, symbol._function_name);
+    *(symbol._ppfn) = dlsym(i_dll_handle, symbol._function_name);
     if (*(symbol._ppfn) == nullptr) {
       std::cout << "Failed to get symbol " << symbol._function_name << std::endl;
     } else {

@@ -63,8 +63,6 @@ MyStream couti;
   }
 
 int main() {
-  ia_nvml::NVMLFunctionTable::instance().initialize_nvml_function_pointers();
-
   IA_NVML_CALL(nvmlInit_v2);
 
   console::couti << "NVML Initialized";

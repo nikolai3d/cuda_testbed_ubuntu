@@ -142,7 +142,7 @@ struct NVMLFunctionTable {
 
   IA_DECLARE_FPTR(nvmlErrorString, const char *, (nvmlReturn_t));
 
-  void initialize_nvml_function_pointers();
+  void initialize_nvml_function_pointers(void *i_dll_handle);
 
   static NVMLFunctionTable &instance();
 };
