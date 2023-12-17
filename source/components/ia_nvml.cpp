@@ -1,4 +1,4 @@
-#include "ia_nvml.h"
+#include "ia_nvml.hpp"
 #include <dlfcn.h>
 
 

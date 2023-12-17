@@ -11,7 +11,8 @@
 #include <sstream>
 #include <vector>
 
-#include "components/ia_nvml.h"
+#include "components/ia_nvml.hpp"
+
 class MyStream {
  public:
   class Helper {
