@@ -147,29 +147,53 @@ struct NVMLFunctionTable {
   static NVMLFunctionTable &instance();
 };
 
-// Helper to invoke a function with a tuple of arguments
-template <typename Function, typename Tuple, std::size_t... I>
-decltype(auto) invoke_helper(Function &&func, Tuple &&t, std::index_sequence<I...>) {
-  static_assert(std::is_invocable_v<Function, decltype(std::get<I>(std::forward<Tuple>(t)))...>, "Function cannot be invoked with the given arguments, check the function signature and the input argument types");
-  return std::invoke(std::forward<Function>(func), std::get<I>(std::forward<Tuple>(t))...);
+
+namespace detail {
+/**
+ * Helper template that invokes a function with the given arguments. Arguments are passed in as a tuple, get unpacked and forwarded to the function.
+ * Don't use this function directly, it's only supposed to be used by the call_function_with_arguments_tuple function.
+ * It performs argument forwarding and checks if the function can be invoked with the given arguments.
+ * If the function cannot be invoked with the given arguments, a compile-time error is generated.
+ * 
+ * @tparam Function The type of the callable object / function.
+ * @tparam ArgTuple The type of the tuple containing the arguments.
+ * @tparam I The indices of the arguments in the tuple.
+ * @param func The callable object / function to be invoked.
+ * @param t The tuple containing the callable object/function arguments.
+ * @return The result of invoking the function with the given arguments.
+ * @throws std::bad_function_call if the function cannot be invoked with the given arguments.
+ */
+template <typename Function, typename ArgTuple, std::size_t... I>
+decltype(auto) invoke_helper(Function &&func, ArgTuple &&tuple, std::index_sequence<I...>) {
+  static_assert(std::is_invocable_v<Function, decltype(std::get<I>(std::forward<ArgTuple>(tuple)))...>, "Function cannot be invoked with the given arguments, check the NVML function signature and the input argument types");
+  return std::invoke(std::forward<Function>(func), std::get<I>(std::forward<ArgTuple>(tuple))...);
 }
 
-// Wrapper to unpack a tuple into a function call
-template <typename Function, typename Tuple>
-decltype(auto) call_with_tuple(const char *file, const std::int64_t line, const char *function_call, Function &&func, Tuple &&t) {
-  constexpr auto size = std::tuple_size<std::remove_reference_t<Tuple>>::value;
-  const auto     status = invoke_helper(std::forward<Function>(func), std::forward<Tuple>(t), std::make_index_sequence<size>{});
+/**
+ * Calls an NVML function with arguments provided as a tuple. (Don't use this function directly, use the IA_NVML_CALL macro instead.). If the function call fails, an error message is printed to stderr.
+ *
+ * @param file The name of the file where the function is called. (for error reporting)
+ * @param line The line number where the function is called. (for error reporting)
+ * @param function_call The name of the function being called. (for error reporting)
+ * @param func NVML The function to be called.
+ * @param t Arguments to be passed to the NVML function, in the form of a tuple 
+ * @return void
+ */
+template <typename Function, typename ArgTuple>
+decltype(auto) call_function_with_arguments_tuple(const char *file, const std::int64_t line, const char *function_call, Function &&func, ArgTuple &&tuple) {
+  constexpr auto tuple_size = std::tuple_size_v<std::remove_reference_t<ArgTuple>>;
+  const auto     status = invoke_helper(std::forward<Function>(func), std::forward<ArgTuple>(tuple), std::make_index_sequence<tuple_size>{});
  // Static assert to check return type
-  static_assert(std::is_same_v<std::remove_const_t<decltype(status)>, nvmlReturn_t>, "call_with_tuple can only be used with NVML functions that return the nvmlReturn_t type");
+  static_assert(std::is_same_v<std::remove_const_t<decltype(status)>, nvmlReturn_t>, "with this wrapper, you can only NVML functions that return the nvmlReturn_t type");
 
   if (status != NVML_SUCCESS) {
     std::stringstream ss;
-    ss << "ERROR: CUDA NVML call " << function_call << "in line " << line << " of file " << file << " failed "
-       << "with " << NVMLFunctionTable::instance().pfn_nvmlErrorString(status) << " (" << status << ").\n";
+    ss << "ERROR: CUDA NVML call " << function_call << " at line " << line << " of file " << file << " failed with error \"" << NVMLFunctionTable::instance().pfn_nvmlErrorString(status) << "\" (error code " << status << ").\n";
     std::cerr << ss.str() << std::endl;
   }
 }
+}  // namespace detail
 
-#define IA_NVML_CALL(func, ...) ia_nvml::call_with_tuple(__FILE__, __LINE__, #func, ia_nvml::NVMLFunctionTable::instance().pfn_##func, std::make_tuple(__VA_ARGS__))
+#define IA_NVML_CALL(NVML_FUNCTION, ...) ia_nvml::detail::call_function_with_arguments_tuple(__FILE__, __LINE__, #NVML_FUNCTION, ia_nvml::NVMLFunctionTable::instance().pfn_##NVML_FUNCTION, std::make_tuple(__VA_ARGS__))
 
 }  // namespace ia_nvml

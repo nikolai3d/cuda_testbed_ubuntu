@@ -57,7 +57,8 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "__nullptr": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "__config": "cpp"
     },
 
     "[javascript]": {
