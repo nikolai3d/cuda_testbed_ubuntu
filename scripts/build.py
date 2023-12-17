@@ -13,7 +13,7 @@ build_dir = project_root_dir / 'build'
 build_dir.mkdir(exist_ok=True)
 
 # Run the CMake command to prepare the build
-subprocess.check_call(['cmake', '-G', 'Ninja', str(project_root_dir)], cwd=str(build_dir))
+subprocess.check_call(['cmake', '-DCMAKE_BUILD_TYPE=Debug', '-G', 'Ninja', str(project_root_dir)], cwd=str(build_dir))
 
 # Run the Ninja command to build the project
 subprocess.check_call(['ninja'], cwd=str(build_dir))
