@@ -62,15 +62,18 @@ MyStream couti;
     std::exit(1);                                                                                                       \
   }
 
+
 int main() {
 
   ia_nvml::NVMLContext nvml_context;
+
+#define NVML_CALL(NVML_FUNCTION, ...) IA_NVML_CALL(nvml_context._nvml_function_table, NVML_FUNCTION, __VA_ARGS__)
 
   console::couti << "NVML Initialized";
 
   std::uint32_t device_count = 0;
 
-  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetCount_v2, &device_count);
+  NVML_CALL(nvmlDeviceGetCount_v2, &device_count);
 
   console::couti << "NVML Device count: " << device_count;
 
@@ -80,16 +83,39 @@ int main() {
 
   console::couti << "NVML Acquiring Device PTR: ";
 
-  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetHandleByIndex_v2, 0, &device);
+  NVML_CALL(nvmlDeviceGetHandleByIndex_v2, 0, &device);
 
   ML_EXPECTS(device != nullptr);
 
   std::vector<char> device_name;
   device_name.resize(1024, '\0');
 
-  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetName, device, device_name.data(), 1023);
+  NVML_CALL(nvmlDeviceGetName, device, device_name.data(), 1023);
 
   console::couti << "NVML device name: `" << std::string(device_name.data()) << "`";
+
+  nvmlMemory_t memory_info;
+  NVML_CALL(nvmlDeviceGetMemoryInfo, device, &memory_info);
+
+  console::couti << "NVML Memory Used: " << memory_info.used << " / " << memory_info.total;
+  console::couti << "NVML Memory Used: " << memory_info.used / 1024 / 1024 << " / " << memory_info.total / 1024 / 1024;
+  console::couti << "NVML Memory Free: " << memory_info.free << " / " << memory_info.total;
+  console::couti << "NVML Memory Free: " << memory_info.free / 1024 / 1024 << " / " << memory_info.total / 1024 / 1024;
+
+  std::vector<char> driver_version;
+  driver_version.resize(1024, '\0');
+  NVML_CALL(nvmlSystemGetDriverVersion, driver_version.data(),1023);
+
+  console::couti << "NVML GPU Driver Version: `" << std::string(driver_version.data()) << "`";
+
+  int cuda_driver_version = 0;
+
+  NVML_CALL(nvmlSystemGetCudaDriverVersion, &cuda_driver_version);
+  console::couti << "NVML CUDA Driver Version: " << NVML_CUDA_DRIVER_VERSION_MAJOR(cuda_driver_version) << "." << NVML_CUDA_DRIVER_VERSION_MINOR(cuda_driver_version);
+
+  NVML_CALL(nvmlSystemGetCudaDriverVersion_v2, &cuda_driver_version);
+  console::couti << "NVML CUDA Driver Version 2: " << NVML_CUDA_DRIVER_VERSION_MAJOR(cuda_driver_version) << "." << NVML_CUDA_DRIVER_VERSION_MINOR(cuda_driver_version);
+
 
   // IA_NVML_CALL(nvmlShutdown())
 
