@@ -2,6 +2,7 @@
 
 #include <dlfcn.h>
 
+#define NVML_CALL(NVML_FUNCTION, ...) IA_NVML_CALL(_nvml_function_table, NVML_FUNCTION, __VA_ARGS__)
 namespace ia_nvml {
 
 NVMLContext::NVMLContext() : _thread_id(std::this_thread::get_id()) {
@@ -13,9 +14,16 @@ NVMLContext::NVMLContext() : _thread_id(std::this_thread::get_id()) {
 
   // Load NVML functions
   _nvml_function_table.initialize_nvml_function_pointers(_nvml_library_handle);
+  
+  NVML_CALL(nvmlInit_v2);
 }
 
 NVMLContext::~NVMLContext() {
+  if (!_nvml_library_handle) {
+    return;
+  }
+
+  NVML_CALL(nvmlShutdown);
   dlclose(_nvml_library_handle);
 }
 

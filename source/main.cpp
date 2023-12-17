@@ -66,8 +66,6 @@ int main() {
 
   ia_nvml::NVMLContext nvml_context;
 
-  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlInit_v2);
-
   console::couti << "NVML Initialized";
 
   std::uint32_t device_count = 0;
@@ -78,20 +76,20 @@ int main() {
 
   ML_EXPECTS(device_count > 0);
 
-  // nvmlDevice_t device = nullptr;
+  nvmlDevice_t device = nullptr;
 
-  // console::couti << "NVML Acquiring Device PTR: ";
+  console::couti << "NVML Acquiring Device PTR: ";
 
-  // IA_NVML_CALL(nvmlDeviceGetHandleByIndex_v2(0, &device))
+  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetHandleByIndex_v2, 0, &device);
 
-  // ML_EXPECTS(device != nullptr);
+  ML_EXPECTS(device != nullptr);
 
-  // std::vector<char> device_name;
-  // device_name.resize(1024, '\0');
+  std::vector<char> device_name;
+  device_name.resize(1024, '\0');
 
-  // IA_NVML_CALL(nvmlDeviceGetName(device, device_name.data(), 1023))
+  IA_NVML_CALL(nvml_context._nvml_function_table, nvmlDeviceGetName, device, device_name.data(), 1023);
 
-  // console::couti << "NVML device name: `" << std::string(device_name.data()) << "`";
+  console::couti << "NVML device name: `" << std::string(device_name.data()) << "`";
 
   // IA_NVML_CALL(nvmlShutdown())
 
