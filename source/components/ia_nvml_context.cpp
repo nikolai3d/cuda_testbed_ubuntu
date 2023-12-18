@@ -1,7 +1,5 @@
 #include "ia_nvml_context.h"
 
-#include <dlfcn.h>
-
 namespace ia_nvml {
 
 NVMLContext::NVMLContext() : _thread_id(std::this_thread::get_id()), _is_initialized(false) {

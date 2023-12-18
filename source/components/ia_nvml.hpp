@@ -11,6 +11,24 @@
 #include <utility>
 
 
+// Check if we are compiling on Windows
+#if defined(_WIN32) || defined(_WIN64)
+#define IA_LINUX() 0
+#define IA_WINDOWS() 1
+// Check if we are compiling on Linux
+#elif defined(__linux__)
+#define IA_LINUX() 1
+#define IA_WINDOWS() 0
+#else
+#error "Unsupported operating system, only Windows and Linux are supported."
+#endif
+
+#if IA_WINDOWS()
+#include <windows.h>
+#elif IA_LINUX()
+#include <dlfcn.h>
+#endif
+
 namespace ia_nvml {
 
 /**
@@ -55,10 +73,14 @@ namespace ia_nvml {
 
 class NVMLFunctionTable {
   // DLL/SO handle
+
+#if IA_WINDOWS()
+  HMODULE _nvml_dll_handle = nullptr;
+#elif IA_LINUX()
   void *_nvml_dll_handle = nullptr;
+#endif
 
  public:
-
 // Macro for declaring function pointer
 #ifndef IA_DECLARE_FPTR
 #define IA_DECLARE_FPTR(name, rettype, arglist) rettype(*pfn_##name) arglist = nullptr;
