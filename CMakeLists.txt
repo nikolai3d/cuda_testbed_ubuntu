@@ -24,3 +24,23 @@ add_library(nvml STATIC source/components/ia_nvml.cpp source/components/ia_nvml.
 add_executable(cuda_info source/main.cpp)
 target_link_libraries(cuda_info ${CUDA_LIBRARIES})
 target_link_libraries(cuda_info nvml)
+
+# Catch2 Unit Tests
+Include(FetchContent)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.5.0 # or a later release
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+
+
+# Add an executable for your unit tests
+add_executable(unit_tests source/tests/test_main.cpp) # Add your test source files here
+target_link_libraries(unit_tests PRIVATE Catch2::Catch2)
+target_include_directories(unit_tests PRIVATE Catch2::Catch2)
+target_link_libraries(unit_tests PRIVATE nvml) # Link with your static library
+
