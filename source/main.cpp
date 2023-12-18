@@ -69,7 +69,7 @@ int main() {
 
   ia_nvml::NVMLContext nvml_context;
 
-#define NVML_CALL(NVML_FUNCTION, ...) IA_NVML_CALL(nvml_context._nvml_function_table, NVML_FUNCTION, __VA_ARGS__)
+#define NVML_CALL(NVML_FUNCTION, ...) IA_NVML_CALL_THROW(nvml_context._nvml_function_table, NVML_FUNCTION, __VA_ARGS__)
 
   console::couti << "NVML Initialized";
 
