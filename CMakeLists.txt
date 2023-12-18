@@ -18,7 +18,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES Release)
 endif()
 
 # Add the component NVML as a static library
-add_library(nvml STATIC source/components/ia_nvml.cpp source/components/ia_nvml.hpp)
+add_library(nvml STATIC source/components/ia_nvml.cpp source/components/ia_nvml.hpp source/components/ia_nvml_context.h source/components/ia_nvml_context.cpp)
 
 # Link the component to the main executable
 add_executable(cuda_info source/main.cpp)

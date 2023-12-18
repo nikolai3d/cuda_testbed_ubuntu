@@ -1,14 +1,11 @@
 #include "ia_nvml.hpp"
 #include <dlfcn.h>
-
-
 #include <initializer_list>
 #include <iostream>
 
 
 namespace {
-
-
+  
 struct Symbol {
   void      **_ppfn;
   const char *_function_name;
@@ -18,16 +15,11 @@ struct Symbol {
 
 namespace ia_nvml {
 
-NVMLFunctionTable &NVMLFunctionTable::instance() {
-  static NVMLFunctionTable s_instance;
-  return s_instance;
-}
-
-void NVMLFunctionTable::initialize_nvml_function_pointers() {
-  void *libhandle = dlopen("libnvidia-ml.so.1", RTLD_NOW);
-  if (libhandle == nullptr) {
-    std::cout << "Failed to open libnvidia-ml.so.1" << std::endl;
-    return;
+bool NVMLFunctionTable::initialize_nvml_function_pointers() {
+  _nvml_dll_handle = dlopen("libnvidia-ml.so.1", RTLD_NOW);
+  if (!_nvml_dll_handle) {
+    std::cout << "Failed to load NVML library" << std::endl;
+    return false;
   }
 
   std::initializer_list<Symbol> symbols = {
@@ -160,7 +152,7 @@ void NVMLFunctionTable::initialize_nvml_function_pointers() {
   std::size_t num_symbols = symbols.size();
   std::size_t num_symbols_loaded = 0;
   for (auto &symbol : symbols) {
-    *(symbol._ppfn) = dlsym(libhandle, symbol._function_name);
+    *(symbol._ppfn) = dlsym(_nvml_dll_handle, symbol._function_name);
     if (*(symbol._ppfn) == nullptr) {
       std::cout << "Failed to get symbol " << symbol._function_name << std::endl;
     } else {
@@ -169,5 +161,13 @@ void NVMLFunctionTable::initialize_nvml_function_pointers() {
   }
   std::cout << "NVML: Loaded " << num_symbols_loaded << " of " << num_symbols << " symbols" << std::endl;
   std::cout << "NVML symbols initialized" << std::endl;
+  return true;
 }
+
+NVMLFunctionTable::~NVMLFunctionTable() {
+  if (_nvml_dll_handle) {
+    dlclose(_nvml_dll_handle);
+  }
+} 
+
 }  // namespace ia_nvml
