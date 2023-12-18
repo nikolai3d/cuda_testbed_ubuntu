@@ -10,8 +10,9 @@ sudo apt-get install gcc
 sudo snap install cmake --classic
 sudo apt-get install git
 sudo apt-get install ninja-build
+```
 
-## Build
+## Building
 
 
 ### Prepare
@@ -29,6 +30,6 @@ ninja
 
 ### Run
 
-./testbed_cpp20
+./build/Debug/cuda_info
 
 
